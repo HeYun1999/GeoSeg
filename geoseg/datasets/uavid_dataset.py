@@ -165,7 +165,7 @@ class UAVIDDataset(Dataset):
 
 
 class UAVIDDatasetV2(Dataset):
-    def __init__(self, data_root='data/uavid/val', mode='val', img_dir='images_512', mask_dir='masks_512',
+    def __init__(self, data_root='data/uavid/val', mode='val', img_dir='images', mask_dir='masks',
                  img_suffix='.png', mask_suffix='.png', transform=val_aug, mosaic_ratio=0.0,
                  img_size=ORIGIN_IMG_SIZE, num_classes=len(CLASSES), class_interest=[4, 5, 6], class_ratio=[0.1, 0.1, 0.01]):
         self.data_root = data_root
