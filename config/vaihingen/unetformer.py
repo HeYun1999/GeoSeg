@@ -39,11 +39,11 @@ use_aux_loss = True
 
 # define the dataloader
 
-train_dataset = VaihingenDataset(data_root='data/vaihingen/train', mode='train',
+train_dataset = VaihingenDataset(data_root='../data/vaihingen/train', mode='train',
                                  mosaic_ratio=0.25, transform=train_aug)
 
 val_dataset = VaihingenDataset(transform=val_aug)
-test_dataset = VaihingenDataset(data_root='data/vaihingen/test',
+test_dataset = VaihingenDataset(data_root='../data/vaihingen/test',
                                 transform=val_aug)
 
 train_loader = DataLoader(dataset=train_dataset,

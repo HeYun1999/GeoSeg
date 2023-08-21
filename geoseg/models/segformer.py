@@ -9,7 +9,7 @@ from einops.layers.torch import Rearrange
 
 
 # helpers
-
+#
 def exists(val):
     return val is not None
 
@@ -120,25 +120,28 @@ class MiT(nn.Module):
             num_layers  # (2,2,2,2)
     ):
         super().__init__()
+        #（卷积核，步长，填充值）
         stage_kernel_stride_pad = ((7, 4, 3), (3, 2, 1), (3, 2, 1), (3, 2, 1))
 
-        dims = (channels, *dims)  # (3,,32,64,160,256)
-        dim_pairs = list(zip(dims[:-1], dims[1:]))  # [(3,32),(32,64),(64,160,(160,256))]
+        dims = (channels, *dims)  # (3,,32,64,160,256)把维度拼接起来
+        dim_pairs = list(zip(dims[:-1], dims[1:]))  # [(3,32),(32,64),(64,160）,(160,256)]相邻的两维度组成一个元组
 
-        self.stages = nn.ModuleList([])  #
+        self.stages = nn.ModuleList([])  #stage是个模型模块类型，其中存储着对输入图形操作的函数
 
         for (dim_in, dim_out), (kernel, stride, padding), num_layers, ff_expansion, heads, reduction_ratio \
                 in zip(dim_pairs, stage_kernel_stride_pad, num_layers, ff_expansion, heads, reduction_ratio):
-            # (3,32),(7,4,3),(2),(8),(1),(8)
-            get_overlap_patches = nn.Unfold(kernel, stride=stride, padding=padding)  # (7,4,3)
+            # (3,32),(7,4,3),(2),(8),(1),(8)将这几组数据按照对应的索引组合在一起
+            #get_overlap_patches是滑动剪切函数
+            get_overlap_patches = nn.Unfold(kernel, stride=stride, padding=padding)  # (7,4,3)nn。unfold，用一个类似卷积核的窗口对图片进行裁剪
+            #
             overlap_patch_embed = nn.Conv2d(dim_in * kernel ** 2, dim_out, 1)  # conv2d(147,32,1,1)
 
             layers = nn.ModuleList([])
 
-            for _ in range(num_layers):  # 循环两次
+            for _ in range(num_layers):  # 循环两次，num_layers (2,2,2,2)
                 layers.append(nn.ModuleList([
-                    PreNorm(dim_out, EfficientSelfAttention(dim=dim_out, heads=heads, reduction_ratio=reduction_ratio)),
-                    PreNorm(dim_out, MixFeedForward(dim=dim_out, expansion_factor=ff_expansion)),
+                    PreNorm(dim_out, EfficientSelfAttention(dim=dim_out, heads=heads, reduction_ratio=reduction_ratio)),#先归一化x后EfficientSelfAttention
+                    PreNorm(dim_out, MixFeedForward(dim=dim_out, expansion_factor=ff_expansion)),#再归一化，最后MixFeedForward
                 ]))
 
             self.stages.append(nn.ModuleList([
@@ -152,24 +155,24 @@ class MiT(nn.Module):
             x,
             return_layer_outputs=False
     ):
-        h, w = x.shape[-2:]  # 256,256
+        h, w = x.shape[-2:]  # 512,512 获得输入的长宽
 
         layer_outputs = []
         for (get_overlap_patches, overlap_embed, layers) in self.stages:
-            x = get_overlap_patches(x)  # (1,147,4096)
+            x = get_overlap_patches(x)  # (1,147,16384)其中147=c*k*k=3x7x7
 
-            num_patches = x.shape[-1]  # 4096
+            num_patches = x.shape[-1]  # 将一张图剪切成16384份，每份7x7
             ratio = int(sqrt((h * w) / num_patches))  # 4
-            x = rearrange(x, 'b c (h w) -> b c h w', h=h // ratio)  # (1,147,64,64)
+            x = rearrange(x, 'b c (h w) -> b c h w', h=h // ratio)  # (1,147,64,64)对图片维度进行操作，把(1,147,16384)拆成(1,147,128，128)
 
-            x = overlap_embed(x)  # (1,32,64,64)
+            x = overlap_embed(x)  # 即overlap_patch_embed模块 一个卷积模块，不改变尺寸，只改变通道数 (1,32,128,128)
             # stage每迭代一次，layer迭代2次。
-            for (attn, ff) in layers:
+            for (attn, ff) in layers:#attn：EfficientSelfAttention模块，ff：MixFeedForward模块
                 x = attn(x) + x
                 x = ff(x) + x  # (1,32,64,64)
 
             layer_outputs.append(x)
-
+            #layer_outputs储存了四层transformer block的输出，如果return_layer_outputs为Flase时，只输出最后一层transformer block的输出
         ret = x if not return_layer_outputs else layer_outputs
         return ret
 
@@ -213,11 +216,11 @@ class Segformer(nn.Module):
         )
 
     def forward(self, x):  # (1,3,256,256)
-        layer_outputs = self.mit(x, return_layer_outputs=True)  # 四个输出
+        layer_outputs = self.mit(x, return_layer_outputs=True)  # 四个输出，储存了四层transformer block的输出
 
-        fused = [to_fused(output) for output, to_fused in zip(layer_outputs, self.to_fused)]  # list:4
-        fused = torch.cat(fused, dim=1)  # (1,1024,64,64)
-        return self.to_segmentation(fused)  # (1,num_class,64,64)
+        fused = [to_fused(output) for output, to_fused in zip(layer_outputs, self.to_fused)]  # to_fused是先卷积只改变通道数，后上采样改变尺寸，最终使四个layer_outputs，变为尺寸通道数一致的四个tensor
+        fused = torch.cat(fused, dim=1)  # (1,1024,128，128)对修改尺寸和通道的四个tensor进行拼接
+        return self.to_segmentation(fused)  # (1,num_class,128，128)两次卷积都用来降低维度到num_class，且不影响图片尺寸
 
 
 def main():
@@ -231,7 +234,7 @@ def main():
         num_classes=4  # number of segmentation classes
     )
     model.eval()
-    x = torch.randn(1, 3, 256, 256)
+    x = torch.randn(1, 3, 512, 512)
 
     with torch.no_grad():
         pred = model(x)
