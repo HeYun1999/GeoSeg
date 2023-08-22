@@ -212,7 +212,11 @@ class Segformer(nn.Module):
 
         self.to_segmentation = nn.Sequential(
             nn.Conv2d(4 * decoder_dim, decoder_dim, 1),
+            # 再四倍上采样才是原图大小
+            nn.Upsample(scale_factor=4),
             nn.Conv2d(decoder_dim, num_classes, 1),
+
+
         )
 
     def forward(self, x):  # (1,3,256,256)
@@ -220,7 +224,8 @@ class Segformer(nn.Module):
 
         fused = [to_fused(output) for output, to_fused in zip(layer_outputs, self.to_fused)]  # to_fused是先卷积只改变通道数，后上采样改变尺寸，最终使四个layer_outputs，变为尺寸通道数一致的四个tensor
         fused = torch.cat(fused, dim=1)  # (1,1024,128，128)对修改尺寸和通道的四个tensor进行拼接
-        return self.to_segmentation(fused)  # (1,num_class,128，128)两次卷积都用来降低维度到num_class，且不影响图片尺寸
+        out = self.to_segmentation(fused)  # (1,num_class,128，128)两次卷积都用来降低维度到num_class，且不影响图片尺寸
+        return out
 
 
 def main():
@@ -231,10 +236,10 @@ def main():
         reduction_ratio=(8, 4, 2, 1),  # reduction ratio of each stage for efficient attention
         num_layers=(2, 2, 2, 2),  # num layers of each stage
         decoder_dim=256,  # decoder dimension
-        num_classes=4  # number of segmentation classes
+        num_classes=6  # number of segmentation classes
     )
     model.eval()
-    x = torch.randn(1, 3, 512, 512)
+    x = torch.randn(8, 3, 512, 512)
 
     with torch.no_grad():
         pred = model(x)

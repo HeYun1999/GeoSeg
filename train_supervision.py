@@ -162,14 +162,19 @@ class Supervision_Train(pl.LightningModule):
 
 # training
 def main():
-    args = get_args()
-    config = py2cfg(args.config_path)
+    args = get_args()#get_args（） 获取终端输入的参数，即config文件
+    config = py2cfg(args.config_path)#将config.py文件 转换成一个字典
     seed_everything(42)
-
+    #通过监视数量定期保存模型。记录的每个指标。
     checkpoint_callback = ModelCheckpoint(save_top_k=config.save_top_k, monitor=config.monitor,
                                           save_last=config.save_last, mode=config.monitor_mode,
                                           dirpath=config.weights_path,
                                           filename=config.weights_name)
+    #save_top_k ：save_top_k个最优模型允许被保存，
+    #要监控的数量。默认情况下，它是“无”，仅保存最后一个纪元的检查点
+    #当“True”时，每当保存检查点文件时，都会将检查点的精确副本保存到文件“last.ckpt”中。这允许以确定性方式访问最新的检查点。默认值：“无”
+
+
     logger = CSVLogger('lightning_logs', name=config.log_name)
 
     model = Supervision_Train(config)

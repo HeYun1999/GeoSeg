@@ -64,7 +64,7 @@ def py2dict(file_path: Union[str, Path]) -> dict:
 
 
 def py2cfg(file_path: Union[str, Path]) -> ConfigDict:
-    cfg_dict = py2dict(file_path)
+    cfg_dict = py2dict(file_path)#py2dict将py文件中的变量等 转化成一个字典
 
     return ConfigDict(cfg_dict)
 

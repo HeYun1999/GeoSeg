@@ -6,7 +6,7 @@ from einops import rearrange, repeat
 from timm.models.layers import DropPath, to_2tuple, trunc_normal_
 import timm
 
-
+'''unetformer 用 timm这个库来建立骨干网络resnet18 '''
 class ConvBNReLU(nn.Sequential):
     def __init__(self, in_channels, out_channels, kernel_size=3, dilation=1, stride=1, norm_layer=nn.BatchNorm2d, bias=False):
         super(ConvBNReLU, self).__init__(

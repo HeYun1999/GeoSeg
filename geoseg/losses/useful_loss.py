@@ -72,14 +72,14 @@ class UnetFormerLoss(nn.Module):
     def __init__(self, ignore_index=255):
         super().__init__()
         self.main_loss = JointLoss(SoftCrossEntropyLoss(smooth_factor=0.05, ignore_index=ignore_index),
-                                   DiceLoss(smooth=0.05, ignore_index=ignore_index), 1.0, 1.0)
+                                   DiceLoss(smooth=0.05, ignore_index=ignore_index), 1.0, 1.0)#loss = SoftCrossEntropyLoss + DiceLoss
         self.aux_loss = SoftCrossEntropyLoss(smooth_factor=0.05, ignore_index=ignore_index)
 
     def forward(self, logits, labels):
-        if self.training and len(logits) == 2:
+        if self.training and len(logits) == 2:#如果有辅助损失的情况下
             logit_main, logit_aux = logits
             loss = self.main_loss(logit_main, labels) + 0.4 * self.aux_loss(logit_aux, labels)
-        else:
+        else:#如果没有辅助损失的情况下
             loss = self.main_loss(logits, labels)
 
         return loss

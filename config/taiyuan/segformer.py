@@ -19,9 +19,9 @@ num_classes = len(CLASSES)
 classes = CLASSES#数据集类别组成的元组
 
 weights_name = "segformer-r18-512-crop-ms-e105"#用于命名训练好的权重文件
-weights_path = "model_weights/vaihingen/{}".format(weights_name)#训练好的权重文件路径
+weights_path = "model_weights/taiyuan/{}".format(weights_name)#训练好的权重文件路径
 test_weights_name = "segformer-r18-512-crop-ms-e105"#在测试效果时，需要加载的已训练好的权重文件名
-log_name = 'vaihingen/{}'.format(weights_name)#log日志文件，保存路径
+log_name = 'taiyuan/{}'.format(weights_name)#log日志文件，保存路径
 monitor = 'val_F1'
 monitor_mode = 'max'
 save_top_k = 1
@@ -48,11 +48,11 @@ use_aux_loss = False
 
 # define the dataloader
 
-train_dataset = VaihingenDataset(data_root='./data/vaihingen/train', mode='train',
+train_dataset = VaihingenDataset(data_root='./data/taiyuan/train', mode='train',
                                  mosaic_ratio=0.25, transform=train_aug)#随机的在数据集中加载图片，以及对应的标签进行训练，旨在增加数据集的随机性，#
                                                                         # mosaic_ratio是随机比率，生成的随机数只有大于mosaic_ratio时，才允许加载原图像，否则加载处理后的图像
 val_dataset = VaihingenDataset(transform=val_aug)
-test_dataset = VaihingenDataset(data_root='./data/vaihingen/test',
+test_dataset = VaihingenDataset(data_root='./data/taiyuan/test',
                                 transform=val_aug)
 
 train_loader = DataLoader(dataset=train_dataset,
@@ -75,4 +75,3 @@ net_params = utils.process_model_params(net, layerwise_params=layerwise_params)#
 base_optimizer = torch.optim.AdamW(net_params, lr=lr, weight_decay=weight_decay)#优化器中ir ir_decay参数生效
 optimizer = Lookahead(base_optimizer)#Lookahead是优化算法，实现需要 套用AdamW的部分代码
 lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=15, T_mult=2)
-
