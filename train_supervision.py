@@ -98,6 +98,7 @@ class Supervision_Train(pl.LightningModule):
         log_dict = {'train_mIoU': mIoU, 'train_F1': F1, 'train_OA': OA}
         self.log_dict(log_dict, prog_bar=True)
 
+
     def validation_step(self, batch, batch_idx):
         img, mask = batch['img'], batch['gt_semantic_seg']
         prediction = self.forward(img)
@@ -113,6 +114,8 @@ class Supervision_Train(pl.LightningModule):
         if 'vaihingen' in self.config.log_name:
             mIoU = np.nanmean(self.metrics_val.Intersection_over_Union()[:-1])
             F1 = np.nanmean(self.metrics_val.F1()[:-1])
+            macc = np.nanmean(self.metrics_val.Pixel_Accuracy_Class()[:-1])
+            mrecall = np.nanmean(self.metrics_val.Recall()[:-1])
         elif 'potsdam' in self.config.log_name:
             mIoU = np.nanmean(self.metrics_val.Intersection_over_Union()[:-1])
             F1 = np.nanmean(self.metrics_val.F1()[:-1])
@@ -128,21 +131,54 @@ class Supervision_Train(pl.LightningModule):
         else:
             mIoU = np.nanmean(self.metrics_val.Intersection_over_Union())
             F1 = np.nanmean(self.metrics_val.F1())
-
-        OA = np.nanmean(self.metrics_val.OA())
+            macc = np.nanmean(self.metrics_val.Pixel_Accuracy_Class())
+        #OA = np.nanmean(self.metrics_val.OA())
         iou_per_class = self.metrics_val.Intersection_over_Union()
-
+        acc_per_class = self.metrics_val.Pixel_Accuracy_Class()
+        f1_per_class = self.metrics_val.F1()
+        recall_per_class = self.metrics_val.Recall()
         eval_value = {'mIoU': mIoU,
                       'F1': F1,
-                      'OA': OA}
+                      #'OA': OA
+                      }
         print('val:', eval_value)
+
+        #log_dict = {'val_mIoU': mIoU, 'val_F1': F1, 'val_acc': macc}
+
+        # mIoU
+        log_dict ={}
+
+        acc_value = {}
+        log_dict['val_acc'] = macc
+        for class_name, acc in zip(self.config.classes, acc_per_class):
+            acc_value['acc_'+class_name] = acc
+            log_dict['acc_'+class_name] = acc
+        print(acc_value)
+
         iou_value = {}
+        log_dict['val_miou'] = mIoU
         for class_name, iou in zip(self.config.classes, iou_per_class):
-            iou_value[class_name] = iou
+            iou_value['iou_'+class_name] = iou
+            log_dict['iou_'+class_name] = iou
         print(iou_value)
 
+        f1_value = {}
+        log_dict['val_F1'] = F1
+        for class_name, f1 in zip(self.config.classes, f1_per_class):
+            f1_value['f1_'+class_name] = f1
+            log_dict['f1_'+class_name] = f1
+        print(f1_value)
+
+        recall_value = {}
+        log_dict['val_recall'] = mrecall
+        for class_name, recall in zip(self.config.classes, recall_per_class):
+            recall_value['recall_'+class_name] = recall
+            log_dict['recall_'+class_name] = recall
+        print(recall_value)
+
+
         self.metrics_val.reset()
-        log_dict = {'val_mIoU': mIoU, 'val_F1': F1, 'val_OA': OA}
+
         self.log_dict(log_dict, prog_bar=True)
 
     def configure_optimizers(self):
