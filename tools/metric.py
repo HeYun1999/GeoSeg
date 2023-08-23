@@ -4,12 +4,13 @@ import numpy as np
 class Evaluator(object):
     def __init__(self, num_class):
         self.num_class = num_class
-        self.confusion_matrix = np.zeros((self.num_class,) * 2)
+        self.confusion_matrix = np.zeros((self.num_class,) * 2)#confusion_matrix混淆矩阵
         self.eps = 1e-8
 
-    def get_tp_fp_tn_fn(self):
-        tp = np.diag(self.confusion_matrix)
-        fp = self.confusion_matrix.sum(axis=0) - np.diag(self.confusion_matrix)
+    def get_tp_fp_tn_fn(self):#获取4个指标值
+        #tp fp tn fn
+        tp = np.diag(self.confusion_matrix)#提取混淆矩阵对角线上的元素，组成一个列表
+        fp = self.confusion_matrix.sum(axis=0) - np.diag(self.confusion_matrix)#所有列相加，组成一个列表
         fn = self.confusion_matrix.sum(axis=1) - np.diag(self.confusion_matrix)
         tn = np.diag(self.confusion_matrix).sum() - np.diag(self.confusion_matrix)
         return tp, fp, tn, fn
@@ -56,11 +57,11 @@ class Evaluator(object):
         FWIoU = (freq[freq > 0] * iou[freq > 0]).sum()
         return FWIoU
 
-    def _generate_matrix(self, gt_image, pre_image):
-        mask = (gt_image >= 0) & (gt_image < self.num_class)
-        label = self.num_class * gt_image[mask].astype('int') + pre_image[mask]
-        count = np.bincount(label, minlength=self.num_class ** 2)
-        confusion_matrix = count.reshape(self.num_class, self.num_class)
+    def _generate_matrix(self, gt_image, pre_image):#生成混淆矩阵（很巧妙的方法）
+        mask = (gt_image >= 0) & (gt_image < self.num_class)#&是交集的意思，过滤掉高于num_class的标签，即过滤无效标签
+        label = self.num_class * gt_image[mask].astype('int') + pre_image[mask]#
+        count = np.bincount(label, minlength=self.num_class ** 2)#统计长度为numclass**2的列表，其索引值出现在label中的次数
+        confusion_matrix = count.reshape(self.num_class, self.num_class)#将长度为numclass**2的列表塑性为numclass numclass的矩阵，即为混淆矩阵
         return confusion_matrix
 
     def add_batch(self, gt_image, pre_image):
