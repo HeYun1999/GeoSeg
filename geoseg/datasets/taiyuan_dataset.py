@@ -57,8 +57,8 @@ def val_aug(img, mask):
 
 
 class TaiyuanDataset(Dataset):
-    def __init__(self, data_root='data/vaihingen/test', mode='val', img_dir='images', mask_dir='masks',
-                 img_suffix='.tif', mask_suffix='.png', transform=val_aug, mosaic_ratio=0.0,
+    def __init__(self, data_root='data/taiyuan/test', mode='val', img_dir='images', mask_dir='masks',
+                 img_suffix='.png', mask_suffix='.png', transform=val_aug, mosaic_ratio=0.0,
                  img_size=ORIGIN_IMG_SIZE):
         self.data_root = data_root
         self.img_dir = img_dir
@@ -181,7 +181,7 @@ def show_img_mask_seg(seg_path, img_path, mask_path, start_seg_index):
         mask = Image.fromarray(mask).convert('P')
         mask.putpalette(np.array(PALETTE, dtype=np.uint8))
         mask = np.array(mask.convert('RGB'))
-        img_id = str(seg_id.split('.')[0])+'.tif'
+        img_id = str(seg_id.split('.')[0])+'.png'
         img = cv2.imread(f'{img_path}/{img_id}', cv2.IMREAD_COLOR)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         ax[i, 0].set_axis_off()
@@ -209,7 +209,7 @@ def show_seg(seg_path, img_path, start_seg_index):
         img_seg = Image.fromarray(img_seg).convert('P')
         img_seg.putpalette(np.array(PALETTE, dtype=np.uint8))
         img_seg = np.array(img_seg.convert('RGB'))
-        img_id = str(seg_id.split('.')[0])+'.tif'
+        img_id = str(seg_id.split('.')[0])+'.png'
         img = cv2.imread(f'{img_path}/{img_id}', cv2.IMREAD_COLOR)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         ax[i, 0].set_axis_off()
@@ -229,7 +229,7 @@ def show_mask(img, mask, img_id):
     mask.putpalette(np.array(PALETTE, dtype=np.uint8))
     mask = np.array(mask.convert('RGB'))
     ax1.imshow(img)
-    ax1.set_title('RS IMAGE ' + str(img_id)+'.tif')
+    ax1.set_title('RS IMAGE ' + str(img_id)+'.png')
     ax2.imshow(mask)
     ax2.set_title('Mask ' + str(img_id)+'.png')
     ax2.legend(handles=patches, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0., fontsize='large')

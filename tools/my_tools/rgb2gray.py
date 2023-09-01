@@ -9,14 +9,14 @@ VOC_COLORMAP = np.array([[0, 255, 0], [34, 139, 34], [107, 142, 35], [0, 0, 255]
                          [255, 0, 0], [192, 192, 192],[128, 42, 42],[254, 252, 193],[255, 255, 255]])
 # 标签其标注的类别
 VOC_CLASSES = ['farmland', 'woodland', 'grassland', 'waters', 'building',
-               'Hardened_surface', 'Heap_digging', 'road','others']
+               'Hardened_surface', 'Heap_digging','road','others']
 
 # 处理txt中的对应图像
-txt_path = 'E:/MYDATASET/Taiyuan_city/mask.txt'
+txt_path = r'G:\project\Geoseg\data\taiyuan\test\mask.txt'
 # 标签所在的文件夹
-label_file_path = 'E:/MYDATASET/Taiyuan_city/mask'
+label_file_path = r'G:\project\Geoseg\data\taiyuan\test\masks_rgb'
 # 处理后的标签保存的地址
-gray_save_path = 'E:/MYDATASET/Taiyuan_city/new_mask/'
+gray_save_path = 'G:/project/Geoseg/data/taiyuan/test/masks/'
 
 with open(txt_path, 'r') as f:
     file_names = f.readlines()

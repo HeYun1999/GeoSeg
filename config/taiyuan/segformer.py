@@ -1,6 +1,6 @@
 from torch.utils.data import DataLoader
 from geoseg.losses import *
-from geoseg.datasets.vaihingen_dataset import *
+from geoseg.datasets.taiyuan_dataset import *
 from geoseg.models.Segformer import Segformer
 from catalyst.contrib.nn import Lookahead
 from catalyst import utils
@@ -9,8 +9,9 @@ from catalyst import utils
 
 max_epoch = 105 #迭代次数epoch
 ignore_index = len(CLASSES)#不用于计算指标的类别名，一般最后一类为其他类，因此ignore_index= len(CLASSES)
-train_batch_size = 8#训练集batch_size
-val_batch_size = 8#测试集batch_size
+
+train_batch_size = 4#训练集batch_size
+val_batch_size = 4#测试集batch_size
 lr = 6e-4#学习率
 weight_decay = 0.01#学习率衰减
 backbone_lr = 6e-5#权重学习率
@@ -18,9 +19,9 @@ backbone_weight_decay = 0.01#权重衰减
 num_classes = len(CLASSES)
 classes = CLASSES#数据集类别组成的元组
 
-weights_name = "segformer-r18-512-crop-ms-e105"#用于命名训练好的权重文件
+weights_name = "segformerb5"#用于命名训练好的权重文件
 weights_path = "model_weights/taiyuan/{}".format(weights_name)#训练好的权重文件路径
-test_weights_name = "segformer-r18-512-crop-ms-e105"#在测试效果时，需要加载的已训练好的权重文件名
+test_weights_name = "segformerb5"#在测试效果时，需要加载的已训练好的权重文件名
 log_name = 'taiyuan/{}'.format(weights_name)#log日志文件，保存路径
 monitor = 'val_F1'
 monitor_mode = 'max'
@@ -33,13 +34,13 @@ resume_ckpt_path = None  # whether continue training with the checkpoint, defaul
 
 #  define the network
 net = Segformer(
-        dims=(32, 64, 160, 256),  # dimensions of each stage
+        dims=(64, 128, 320, 512),  # dimensions of each stage
         heads=(1, 2, 5, 8),  # heads of each stage
-        ff_expansion=(8, 8, 4, 4),  # feedforward expansion factor of each stage
+        ff_expansion=(4, 4, 4, 4),  # feedforward expansion factor of each stage
         reduction_ratio=(8, 4, 2, 1),  # reduction ratio of each stage for efficient attention
-        num_layers=(2, 2, 2, 2),  # num layers of each stage
+        num_layers=(3, 6, 40, 3),  # num layers of each stage
         decoder_dim=256,  # decoder dimension
-        num_classes=num_classes  # number of segmentation classes
+        num_classes=9  # number of segmentation classes
     )
 
 # define the loss
@@ -48,11 +49,11 @@ use_aux_loss = False
 
 # define the dataloader
 
-train_dataset = VaihingenDataset(data_root='./data/taiyuan/train', mode='train',
+train_dataset = TaiyuanDataset(data_root='./data/taiyuan/train', mode='train',
                                  mosaic_ratio=0.25, transform=train_aug)#随机的在数据集中加载图片，以及对应的标签进行训练，旨在增加数据集的随机性，#
                                                                         # mosaic_ratio是随机比率，生成的随机数只有大于mosaic_ratio时，才允许加载原图像，否则加载处理后的图像
-val_dataset = VaihingenDataset(transform=val_aug)
-test_dataset = VaihingenDataset(data_root='./data/taiyuan/test',
+val_dataset = TaiyuanDataset(transform=val_aug)
+test_dataset = TaiyuanDataset(data_root='./data/taiyuan/test',
                                 transform=val_aug)
 
 train_loader = DataLoader(dataset=train_dataset,

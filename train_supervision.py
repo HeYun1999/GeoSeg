@@ -132,6 +132,7 @@ class Supervision_Train(pl.LightningModule):
             mIoU = np.nanmean(self.metrics_val.Intersection_over_Union())
             F1 = np.nanmean(self.metrics_val.F1())
             macc = np.nanmean(self.metrics_val.Pixel_Accuracy_Class())
+            mrecall = np.nanmean(self.metrics_val.Recall())
         #OA = np.nanmean(self.metrics_val.OA())
         iou_per_class = self.metrics_val.Intersection_over_Union()
         acc_per_class = self.metrics_val.Pixel_Accuracy_Class()
