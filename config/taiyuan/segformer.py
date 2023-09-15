@@ -71,8 +71,8 @@ val_loader = DataLoader(dataset=val_dataset,
                         drop_last=False)
 
 # define the optimizer
-layerwise_params = {"backbone.*": dict(lr=backbone_lr, weight_decay=backbone_weight_decay)}#骨干网络参数
-net_params = utils.process_model_params(net, layerwise_params=layerwise_params)#骨干网络参数生效
+#layerwise_params = {"backbone.*": dict(lr=backbone_lr, weight_decay=backbone_weight_decay)}#骨干网络参数
+#net_params = utils.process_model_params(net, layerwise_params=layerwise_params)#骨干网络参数生效
 base_optimizer = torch.optim.AdamW(net_params, lr=lr, weight_decay=weight_decay)#优化器中ir ir_decay参数生效
 optimizer = Lookahead(base_optimizer)#Lookahead是优化算法，实现需要 套用AdamW的部分代码
 lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=15, T_mult=2)

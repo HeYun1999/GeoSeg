@@ -5,18 +5,18 @@ import os
 from PIL import Image
 
 # 标签中每个RGB颜色的值
-VOC_COLORMAP = np.array([[0, 255, 0], [34, 139, 34], [107, 142, 35], [0, 0, 255],
+VOC_COLORMAP = np.array([[250,250,250],[0, 255, 0], [34, 139, 34], [107, 142, 35], [0, 0, 255],
                          [255, 0, 0], [192, 192, 192],[128, 42, 42],[254, 252, 193],[255, 255, 255]])
 # 标签其标注的类别
-VOC_CLASSES = ['farmland', 'woodland', 'grassland', 'waters', 'building',
+VOC_CLASSES = ['background','farmland', 'woodland', 'grassland', 'waters', 'building',
                'Hardened_surface', 'Heap_digging','road','others']
 
 # 处理txt中的对应图像
-txt_path = r'G:\project\Geoseg\data\taiyuan\test\mask.txt'
+txt_path = r'G:\mask.txt'
 # 标签所在的文件夹
-label_file_path = r'G:\project\Geoseg\data\taiyuan\test\masks_rgb'
+label_file_path = r'G:\masks_512'
 # 处理后的标签保存的地址
-gray_save_path = 'G:/project/Geoseg/data/taiyuan/test/masks/'
+gray_save_path = 'G:/masks/'
 
 with open(txt_path, 'r') as f:
     file_names = f.readlines()
@@ -29,7 +29,7 @@ with open(txt_path, 'r') as f:
         mask = cv2.cvtColor(mask, cv2.COLOR_BGR2RGB)  # 通道转换
         mask = mask.astype('uint8')
         #制作一个全为9的，尺度与源标签大小一样的tensor,标签只有0~8，9表明是没分割的区域，例如卫星图片中全黑区域
-        label_mask = np.full((mask.shape[0], mask.shape[1]), 8,dtype=np.uint8)
+        label_mask = np.full((mask.shape[0], mask.shape[1]), 0,dtype=np.uint8)
         #label_mask = np.zeros((mask.shape[0], mask.shape[1]), dtype=np.int16)
         # 标签处理
         #ii保存索引，label保存像素值例[0, 255, 0]
